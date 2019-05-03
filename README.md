@@ -10,12 +10,12 @@ up GRAFT nodes, supernodes, etc.
 Detailed setup guide by [yidakee](https://t.me/el_duderino_007) to get a supernode up and running from scratch on a Ubuntu 18.04 system.
 Highly recommended for new-to-Linux users to get going.
 
-### [Supernodes/Quick Setup Graft Supernode (Building from Source)](Supernodes/Setup%20Graft%20Supernode%20(Building%20from%20Source).md)
+### [Quick Setup Graft Supernode (Building from Source)](Supernodes/Setup%20Graft%20Supernode%20(Building%20from%20Source).md)
 
 This is a condensed set of instructions to get up and running with a supernode.  Recommended for someone with prior Linux
 experience, or who has gone through the setup before and just needs a quick refresher on the steps.
 
-### [Supernodes/Updating the supernode code and recompiling](Supernodes/graft-ng-update.md)
+### [Updating the supernode code and recompiling](Supernodes/graft-ng-update.md)
 
 A quick set of instructions (by [Jason](https://t.me/jagerman42)) describing how to update and
 rebuild the supernode using either the dev or community builds.
