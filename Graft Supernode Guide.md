@@ -467,7 +467,7 @@ curl http://graftbuilds-ohio.s3.amazonaws.com/lmdb.tar.gz | tar xzf -
 cd lmdb && rm em* && rm lo*
 cd
 ````
-Once complete you can move on to [**Enable graftnoded.service in systemd and start graftnoded**](#enable-graftnoded.service-to-automatically-start-graftnoded-after-boot)
+Once complete you can move on to [**Enable graftnoded.service in systemd and start graftnoded**](#enable-graftnoded.service-to-automatically-start-graftnoded-after-boot.)
 
 - Option 2 (If you want to sync from scratch or already have the blockchain partially or fully downloaded)
 
