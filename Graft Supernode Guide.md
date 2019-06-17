@@ -1,4 +1,4 @@
-# Maintenance and Server Hardening guide for Graft Supernode | Multi-SN, Simple Graft commands and troubleshooting - Community Deb packages
+# Graft Supernode Guide
 
 -   A big thanks goes out to ***@Jagerman42*** (Telegram Handle) for his contribution to Graft and always supporting the community.
 
