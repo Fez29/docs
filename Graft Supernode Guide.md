@@ -348,8 +348,7 @@ mkdir -p ~/sn2/logs
 mkdir -p ~/sn3/logs
 ````
 
-- **Edit config.ini files** Repeat for all sn folders created.
-
+- **Edit config.ini files**
 ````
 nano ~/sn1/config.ini
 ````
@@ -369,22 +368,40 @@ data-dir=
 - **Change the directory according to the folders you created in the first step for ***data-dir=*** for each respective config.ini in each directory. (Replace value after /home/<value> with your user)**
 - **Something like:**
 
+- sn1
 ````
+nano ~/sn1/config.ini
+````
+````
+http-address=0.0.0.0:18690
+
 data-dir=/home/graft/sn1/
+
+wallet-public-address=<Your_wallet_address_sn1>
 ````
+- press cntrl + x and follow the prompts to save
+
+- sn2
 
 ````
+http-address=0.0.0.0:18691
+
 data-dir=/home/graft/sn2/
-````
 
-- **Obviously as per all other guides instructions, add your wallet into config.ini that you will be using to stake with:**
-Note: All shown < and > should not be used in the related commands.
+wallet-public-address=<Your_wallet_address_sn2>
 ````
-	wallet-public-address=<Your_wallet_address>
+- press cntrl + x and follow the prompts to save
+
+- sn3
+
 ````
+http-address=0.0.0.0:18692
 
-- **Start supernode and CHECK that supernode.keys is inside your directory for each sn. Refer to below where we setup systemd to launch each Supernode.**
+data-dir=/home/graft/sn3/
 
+wallet-public-address=<Your_wallet_address_sn3>
+````
+- press cntrl + x and follow the prompts to save
 
 ## Systemd configuration
 
@@ -414,6 +431,47 @@ Environment=TERM=xterm
 WantedBy=multi-user.target
 ````
 - Cntrl + x to save
+
+- Now we are all ready and setup for graftnoded launch, You have two options:
+
+- 1) You can download the raw copy of the blockchain so that you dont need to wait for the blockchain to sync.
+- 2) You can sync from scratch and wait for the sync to complete.
+
+- Steps for Option 1 (Fresh Install or have existing copy and want to replace it):
+
+If you cannot find the **~** symbol you can use $HOME instead. eg. **ls $HOME/.graft** for below command
+
+````
+ls ~/.graft
+````
+- If it says it does not exist, create it with below command:
+````
+mkdir ~/.graft/
+````
+````
+cd ~/.graft/
+````
+- If the folder existed already when you checked a couple steps before, run the below command, if you created the folder you can skip below ls command.
+````
+ls -la
+````
+- Below rm command is only neccessary if you did not just create the .graft folder so if it fails and says the directory does not exist just carry on to the next step.
+````
+rm -r lmdb
+````
+- Download the blockchain, wait for this complete.
+````
+curl http://graftbuilds-ohio.s3.amazonaws.com/lmdb.tar.gz | tar xzf -
+````
+````
+cd lmdb && rm em* && rm lo*
+cd
+````
+Once complete you can move on to [**Enable graftnoded.service in systemd and start graftnoded**](#enable-graftnoded.service-to-automatically-start-graftnoded-after-boot)
+
+- Option 2 (If you want to sync from scratch or already have the blockchain partially or fully downloaded)
+
+Just continue with guide.
 
 ## Enable graftnoded.service to automatically start graftnoded after boot.
 
@@ -488,7 +546,12 @@ sudo systemctl enable graft-supernode@sn1.service
 ````
 sudo systemctl enable graft-supernode@sn2.service
 ````
+- sn3
 
+````
+sudo systemctl enable graft-supernode@sn2.service
+````
+- NOTE: Ensure graftnoded is fully synced before starting any supernode processes. You can check how here [**Check status of graftnoded**](#get-status-of-graftnoded)
 ## Starting graft-supernode with systemd
 
 - sn1
@@ -503,11 +566,42 @@ sudo systemctl start graft-supernode@sn1.service
 sudo systemctl start graft-supernode@sn2.service
 ````
 
-Now we can also stop the graft-supernode service with the below:
+- sn3
+
+````
+sudo systemctl start graft-supernode@sn3.service
+````
+
+- **After starting supernode, CHECK that supernode.keys is inside your directory for each sn.**
+- check sn1 folder
+````
+ls ~/sn1
+````
+- check sn2 folder
+````
+ls ~/sn2
+````
+- check sn3 folder
+````
+ls ~/sn3
+````
+Repeat if you have more SN's adjusting the number after ~/sn accordingly.
+
+Now we can also restart the graft-supernode service with the below if an when required:
 - sn1
 
 ````
-sudo systemctl stop graft-supernode@sn1.service
+sudo systemctl restart graft-supernode@sn1.service
+````
+- sn2
+
+````
+sudo systemctl restart graft-supernode@sn1.service
+````
+- sn3
+
+````
+sudo systemctl restart graft-supernode@sn1.service
 ````
 
 To view the systemd logs for your newly created graft-supernode@sn1.service:
@@ -605,39 +699,86 @@ exit $EXITVALUE
 
 Port for mainnet graftnoded at the time of writing is : ***18980***
 
-## Operating and using graftnoded
 
-Please note that if you are running compiled binaries or downloaded the binaries, all commands should be run in the same folder as the binary resides/lives and with ./ in front of the mentioned command, eg, ./graftnoded status.
+## Staking our supernodes
 
-#### Mainnet:
+- Firstly lets check that our supernodes are running as expected. I recommend you give the supernode a little time to do it's thing. +-15 min should be good.
+
+**Start by installing curl**
 ````
-Default Port for graftnoded: 18980
+sudo apt update && sudo apt install curl -y
 ````
-#### Public Testnet:
+Then we check the supernodes active list which should reflect all other **ACTIVE** supernodes it knows about on the network.
+NOTE: We get the ports from the config.ini files we setup earlier in the supernode setup.
+- SN1
 ````
-Default Port for graftnoded: 28880
+curl 127.0.0.1:18690/debug/supernode_list/0
 ````
-#### Launch graftnoded (Here we assume you have followed the previous part of the guide setting up GraftNetwork, refer to below link for section):
-- [**GraftNetwork**](#graftnetwork-1)
+This should return a large dataset including line that look like the below:
 ````
-~/graftnetwork/graftnoded --detach
+{"Address":"G9DXEPzrA29PXZ9Y8EUhUXdPUyAkTFgGgLqzfr5o3zQ2e1y8EgtbP4gFRJtdAHp3W8haFbQ1dhDGghN65xQSHH7Q5cRL7m6","PublicId":"975bcac83e27d6a0646dcaebarfb519d0a609b871bb749969ccb344545e975f1","StakeAmount":901998322793500,"StakeFirstValidBlock":372627,"StakeExpiringBlock":377626,"IsStakeValid":true,"BlockchainBasedListTier":0,"AuthSampleBlockchainBasedListTier":0,"IsAvailableForAuthSample":false,"LastUpdateAge":170}
 ````
-Get status of graftnoded:
+You can repeat for the other supernodes you have setup as well just to be sure.
+- SN2
 ````
-~/graftnetwork/graftnoded status
+curl 127.0.0.1:18691/debug/supernode_list/0
 ````
-Get graftnoded launch options:
+- SN3
 ````
-~/graftnetwork/graftnoded --help
+curl 127.0.0.1:18692/debug/supernode_list/0
 ````
-Get graftnoded interactive commands like status previously mentioned:
+If all is well you should be getting large lists as responses and can type "clear" to wipe your terminal screen.
+NOTE: You can remove curl and substitute 127.0.0.1 with your external IP address for your VPS and use a browser to get the same response if the port is open.
+
+### Getting Stake command details
+- SN1
+Lets check sn1 first:
 ````
-~/graftnetwork/graftnoded help
+curl 127.0.0.1:18690/dapi/v2.0/cryptonode/getwalletaddress
 ````
-#### If you did not follow the setup of graftnetwork link as referred to in above section, you need to run these commands in the directory/folder where the binaries live and put ./ in front like:
+We **should** get a response that looks similiar to:
 ````
-./graftnoded --detach
+{"testnet":false,"wallet_public_address":"GBaVCiuS8VHGtXNU7aZxVhTicH44yPN94bDwtpY6TaejZq1aMYn2PMNCeDw6L44pRxH1SmNk6jP6W2eVqiJhfhHV7XyXcFt","id_key":"157c24193bdb5e4dirq61455c7d3bc2449aa9e2ty5c2d69bf60ad03924e2d8af9","signature":"006dc862c135495836e3092807638dabc1b2e67b85ba645572b928530eb43a0ad64ebcd8b9425367162bf33fd8f92aa659359d0639e3fcbd85b54f771cd90d05"}
 ````
+NOTE: Take these values down in a text file or similiar. As we will need these values later for staking from our wallet.
+
+Then repeat this process with the additional SN's ports if you have a Multi-SN setup:
+
+- SN2
+````
+curl 127.0.0.1:18691/dapi/v2.0/cryptonode/getwalletaddress
+````
+- SN3
+````
+curl 127.0.0.1:18692/dapi/v2.0/cryptonode/getwalletaddress
+````
+**OK now that we are are happy that our supernodes are running fine, we are now ready to stake our supernodes**
+
+## Staking your Supernode
+**NOTE:** It is recommended **NOT** to run the wallet on the VPS and if you do, please delete your wallet files afterwards, before deleting, please ensure you have you seed and that it is correct.
+
+- Step 1: Ensure address of wallet is same as <wallet_public_address> in the response from your SN that you recorded earlier, see here: [***Getting Stake command details***](#getting-stake-command-details)
+````
+address
+````
+- Step 2 : Firstly ensure your wallet is reflecting the funds needed once you have you wallet open:
+````
+balance
+````
+- Step 3 : If your funds are present, use the details you recorded earlier from the response from your SN (Ensure the wallet you are staking from has the same address as the <wallet_public_address>):
+````
+stake_transfer <wallet_public_address> <STAKE_AMOUNT> <LOCK_BLOCKS_COUNT> <id_key> <signature>
+````
+
+So referring to the example response in the previous section, the staking command would look like the below to stake a T1 for 100 blocks = approx 3 hours 20 minutes, (PLEASE DO NOT USE THE BELOW IT IS JUST AN EXAMPLE):
+````
+stake_transfer GBaVCiuS8VHGtXNU7aZxVhTicH44yPN94bDwtpY6TaejZq1aMYn2PMNCeDw6L44pRxH1SmNk6jP6W2eVqiJhfhHV7XyXcFt 50000 100 157c24193bdb5e4dirq61455c7d3bc2449aa9e2ty5c2d69bf60ad03924e2d8af9 006dc862c135495836e3092807638dabc1b2e67b85ba645572b928530eb43a0ad64ebcd8b9425367162bf33fd8f92aa659359d0639e3fcbd85b54f771cd90d05
+````
+
+Note the current maximum LOCK_BLOCKS_COUNT is equal to 5000, this is approximately a week. make sure you know what you are doing before actioning this number.
+
+For a more in-depth look into creating a wallet and setting up to work with either a remote daemon or a local daemon, refer to [**Setting up a working graft-wallet-cli**](https://github.com/graft-community/docs/blob/master/Guide_To_setting_up_graft-wallet-cli.md#setting-up-a-working-graft-wallet-cli)
+
 #### Graft wallet commands:
 
 In the directory/folder you would like to store the wallet in:
@@ -703,7 +844,43 @@ rm stake-wallet.address.txt
 rm stake-wallet.keys
 ````
 
+## Operating and using graftnoded
+
+Please note that if you are running compiled binaries or downloaded the binaries, all commands should be run in the same folder as the binary resides/lives and with ./ in front of the mentioned command, eg, ./graftnoded status.
+
+#### Mainnet:
+````
+Default Port for graftnoded: 18980
+````
+#### Public Testnet:
+````
+Default Port for graftnoded: 28880
+````
+#### Launch graftnoded 
+- (Here we assume you have followed the previous part of the guide setting up GraftNetwork, refer to below link for section):
+- [**GraftNetwork**](#graftnetwork-1)
+````
+~/graftnetwork/graftnoded --detach
+````
+##### ***Get status of graftnoded***
+````
+~/graftnetwork/graftnoded status
+````
+Get graftnoded launch options:
+````
+~/graftnetwork/graftnoded --help
+````
+Get graftnoded interactive commands like status previously mentioned:
+````
+~/graftnetwork/graftnoded help
+````
+#### If you did not follow the setup of graftnetwork link as referred to in above section, you need to run these commands in the directory/folder where the binaries live and put ./ in front like:
+````
+./graftnoded --detach
+````
+
 ### Running processes in the background if you have not setup systemd
+**NOTE:** If you have followed the guide from the start you do NOT need this section, you can skip it.
 
 You have an option of either TMUX or Screen, I am sure there are other options but these are the two that are popular. I myself have used TMUX and found it prety easy to use and powerful, therefore I will explain the usage here, I will post links at the bottom of the guide to further instructions/cheat sheets for tmux and also 1 for screen which I will not include in this guide as my usage of screen is extremely limited.
 
@@ -770,12 +947,12 @@ This should be enough to allow you a general understanding of tmux and its usage
 
 Locally on the machine supernode is running on (run in terminal on the local machine):
 ````
-curl 127.0.0.1:28690/debug/supernode_list/1
+curl 127.0.0.1:18690/debug/supernode_list/0
 ````
 From external (from your home pc to your VPS for example, insert in browser):
 Note: All shown < and > should not be used in the related commands
 ````
-http://<Your_Server_IP>:28690/debug/supernode_list/1
+http://<Your_Server_IP>:18690/debug/supernode_list/1
 ````
 The above commands show all supernodes that your supernode has picked up, in order to show all supernodes your supernodes recognizes as active please replace 1 with 0 at the end,
 
