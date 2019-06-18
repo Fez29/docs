@@ -94,6 +94,35 @@
 
 ### [GraftNetwork](https://github.com/graft-project/GraftNetwork)
 
+Connecting to our VPS via Putty for Windows users or via ssh in Terminal for Linux users.
+
+#### Windows = Using Putty to connect
+
+After creating your VPS on your chosen provider, you will have external IP that is assigned to the machine. For example 121.79.162.122.
+
+-   Download the Putty client and install the exe, I generally use **filehippo.com** as I trust this site and have never had issues with any downloaded files from it.
+-   Once installed launch putty and it should bring you to the main screen of putty and the first thing you should see is a input box labelled **"Host Name (or IP addres)**, inside this box input the below.
+
+````
+root@<Your_VPS_External_IP>
+```` 
+-   Now you will see root in front of the @ sign, this is the user you will be logging in as, for most providers this is the provisioned user after initial setup. Some providers will email you login credentials and others would just require you to setup a password and possibly a user on the setup. Adjust this input accordingly. 
+-   After the @ sign is the IP address you want to connect to.
+-   Next thing to take note of is the input box to the right of the **"Host Name (or IP addres)"** input box and this is the **"Port"** input box, now this will be by default be 22 and SSH always connects by default to port 22 so unless you change it specifically, you can leave this as is.
+-   Now press open, you should get a pop up advising you of a security alert, press yes. and you will connect, input the password and you are connected!
+
+#### Linux Users
+
+-   All the above applies the same except that you open a terminal session. and run 
+````
+ssh root@<Your_VPS_External_IP>
+````
+-   Select yes when presented with a warning. and you should be good to go.
+-   If you want to define the port, for example to 222
+````
+ssh root@<Your_VPS_External_IP> -p 222
+````
+
 ## Add a non-root user
 Logged in as root and "**graft** being your username you have chosen (the username can be anything)":
 ````bash
@@ -325,17 +354,13 @@ ln -snf supernode.1.0.4.ubuntu-18.04.x64 graftsupernode
 
 ## Setting up our folder structure for Multiple Supernodes
 
+- For multiple supernodes we need to create a unique folder for each sn and we need to have a config.ini file in each directory.
+
 - **Copy graftsupernode contents and create sn directories**
 Note if you already have existing directories do not do the below,
 
 - Section 1 - Setting up from scratch
-````
-cp -r ~/graftsupernode/config.ini ~/sn1/config.ini
 
-cp -r ~/graftsupernode/config.ini ~/sn2/config.ini
-
-cp -r ~/graftsupernode/config.ini ~/sn3/config.ini
-````
 - **Create Our logs Folders**
 
 ````
@@ -346,6 +371,15 @@ mkdir -p ~/sn2/logs
 ````
 ````
 mkdir -p ~/sn3/logs
+````
+
+- **Copying config.ini to the directories we just created above**
+````
+cp -r ~/graftsupernode/config.ini ~/sn1/config.ini
+
+cp -r ~/graftsupernode/config.ini ~/sn2/config.ini
+
+cp -r ~/graftsupernode/config.ini ~/sn3/config.ini
 ````
 
 - **Edit config.ini files**
@@ -382,7 +416,9 @@ wallet-public-address=<Your_wallet_address_sn1>
 - press cntrl + x and follow the prompts to save
 
 - sn2
-
+````
+nano ~/sn2/config.ini
+````
 ````
 http-address=0.0.0.0:18691
 
@@ -393,7 +429,9 @@ wallet-public-address=<Your_wallet_address_sn2>
 - press cntrl + x and follow the prompts to save
 
 - sn3
-
+````
+nano ~/sn3/config.ini
+````
 ````
 http-address=0.0.0.0:18692
 
@@ -631,7 +669,8 @@ sudo nano /etc/logrotate.d/graftnoded-logs
 ````
 #### supernode logs
 
-Remember to change graft to your user (find this out by using "whoami" command)
+Remember to change graft to your user (find this out by using "whoami" command).
+- SN1
 ````
 sudo nano /etc/logrotate.d/sn1-logs
 ````
@@ -645,7 +684,10 @@ sudo nano /etc/logrotate.d/sn1-logs
     create
 }
 ````
-- Cntrl + x to save
+**Cntrl + x to save and follow prompt at bottom of screen.**
+
+- SN2
+
 ````
 sudo nano /etc/logrotate.d/sn2-logs
 ````
@@ -659,9 +701,30 @@ sudo nano /etc/logrotate.d/sn2-logs
     create
 }
 ````
-- Cntrl + x to save
 
-- To check that logrotate is actually working we can run the below command:
+**Cntrl + x to save and follow prompt at bottom of screen.**
+
+- SN3
+
+````
+sudo nano /etc/logrotate.d/sn3-logs
+````
+- Input below text into the new file:
+````
+/home/graft/sn3/logs/sn3.log {
+    daily
+    rotate 5
+    missingok
+    compress
+    create
+}
+````
+
+**Cntrl + x to save and follow prompt at bottom of screen.**
+
+#### OPTIONAL
+
+- To check that logrotate is actually working we can run the below command **OR** you can wait till the next day instead and the check the directory where the log file exists:
 ````
 sudo /usr/sbin/logrotate -f /etc/logrotate.conf
 ````
@@ -693,7 +756,7 @@ fi
 exit $EXITVALUE
 
 ````
-- Then check the directory where the log file exists you should see another file now which is a result of logrotate compressing the .log file.
+- Then check the directory where the log file exists you should see another file now which is a result of logrotate compressing the .log file. In this scenario the path would be **/home/graft/sn1/logs/** for SN1 and the file will end with **.gz**
 
 ## Port forwarding/"exposing the port" is required to the graftnoded port as of the time of writing to ensure that your graftnoded can communicate with other machines on the network and so your supernode appear as active on the GraftRTABot on Telegram.
 
@@ -882,7 +945,9 @@ Get graftnoded interactive commands like status previously mentioned:
 ### Running processes in the background if you have not setup systemd
 **NOTE:** If you have followed the guide from the start you do NOT need this section, you can skip it.
 
-You have an option of either TMUX or Screen, I am sure there are other options but these are the two that are popular. I myself have used TMUX and found it prety easy to use and powerful, therefore I will explain the usage here, I will post links at the bottom of the guide to further instructions/cheat sheets for tmux and also 1 for screen which I will not include in this guide as my usage of screen is extremely limited.
+**The recommended way to run a supernode would be to configure systemd to manage the services for you as it would ultimately save you time and effort. This is explained prior in this guide and I would urge you to really consider taking that route instead.**
+
+You have an option of either TMUX or Screen, I am sure there are other options but these are the two that are most popular. I myself have used TMUX and found it prety easy to use and powerful, therefore I will explain the usage here, I will post links at the bottom of the guide to further instructions/cheat sheets for tmux and also 1 for screen which I will not include in this guide as my usage of screen is extremely limited.
 
 #### TMUX
 
