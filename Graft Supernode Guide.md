@@ -12,9 +12,7 @@
 
 -   We also include a logs directory inside of each Supernode directory, once again this is completely up to the user. 
 
--   We will assume that the user has a general understanding of how to operate the graftnoded and supernode applications, Linux distros and staking their supernode, if not please refer to the guides at the bottom of this document and other mater in the Graft Community Docs repo.
-
-- Take note that if you are upgrading from GraftNetwork version 1.7.* to 1.8.* that your current blockchain will need to be migrated from V1 to V2 so if it appears that graftnoded is hanging after starting 1.8.* it is most like bust with the migration. 
+- Take note that if you are upgrading from GraftNetwork version 1.7.* to 1.8.* that your current blockchain will need to be migrated from V1 to V2 so if it appears that graftnoded is hanging after starting 1.8.* it is most likely busy with the migration. 
 
 -   Links to some useful content used in building this guide.
 
@@ -23,20 +21,25 @@
 -   This guide can be used for testnet with the only difference being that **graftnoded** and **graft-wallet-cli** commands are used with the **--testnet** switch. 
 	- Like: graftnoded --testnet
 
-## Introduction to this guide and the tools included and terms used
+## Overview
+
+
+
+## Introduction to this guide and the tools included and the terms used within it
 
 **Terms used**
 
-- 1) root user : a power/admin user in Linux that is able to perform any command/function on your system and can present huge security risks.
-- 2) sudo group : a group of admin users that can perform admin commands/functions but require a password to be passed to complete the request.
-    - 2a) Usage : Add sudo in front of any command that requires admin rights in order to execute it successfully. 
-- 3) ufw - Ultra Simple Firewall : This allows us to limit connections "into" our server by specific ports. 
+- 1) root user: a power/admin user in Linux that is able to perform any command/function on your system and can present huge security risks.
+- 2) sudo group: a group of admin users that can perform admin commands/functions but require a password to be passed to complete the request.
+    - 2a) Usage: Add sudo in front of any command that requires admin rights in order to execute it successfully. 
+- 3) ufw: Ultra Simple Firewall : This allows us to limit connections "into" our server by specific ports. 
     - 3a) Once enable and active. All ports you "allow", remote machines will be able to make "inbound" connections to our server through those ports and the rest of the ports will be blocked.
 - 4) updating packages with apt : APT(Advanced Package Tool) is a command line tool that is used for easy interaction with the dpkg packaging system and it is the most efficient and preferred way of managing software from the command line for Debian and Debian based Linux distributions like Ubuntu . It manages dependencies effectively, maintains large configuration files and properly handles upgrades and downgrades to ensure system stability. See here: [**A Beginners Guide to using apt-get commands in Linux(Ubuntu)**](https://codeburst.io/a-beginners-guide-to-using-apt-get-commands-in-linux-ubuntu-d5f102a56fc4)
-- 5) ssh : the way we connect to our ubuntu server from a remote machine using putty, powershell or lunux terminal. For an in depth explanation and some usage methods, see here: [Definition: Secure Shell (SSH)](https://searchsecurity.techtarget.com/definition/Secure-Shell)
-- 6) systemd - A way to automate and manage services/processes and ensure the configured services are started on boot and restarted if the fail/die. This is not all that systemd does but is what it is used for in this instance. [**Understanding Systemd Units and Unit Files**](https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files)
-- 7) logrotate - is designed to ease administration of systems that generate large numbers of log files. It allows automatic rotation, compression, removal, and mailing of log files. Each log file may be handled daily, weekly, monthly, or when it grows too large. [**Linux man page**](https://linux.die.net/man/8/logrotate)
-- 8) scp - scp copies files between hosts on a network.  It uses ssh(1) for data transfer, and uses the same authentication and provides the same security as ssh(1). scp will ask for passwords or passphrases if they are needed for authentication.[**Linux scp command**](https://www.computerhope.com/unix/scp.htm)
+- 5) ssh: the way we connect to our ubuntu server from a remote machine using putty, powershell or lunux terminal. For an in depth explanation and some usage methods, see here: [Definition: Secure Shell (SSH)](https://searchsecurity.techtarget.com/definition/Secure-Shell)
+- 6) systemd: A way to automate and manage services/processes and ensure the configured services are started on boot and restarted if the fail/die. This is not all that systemd does but is what it is used for in this instance. [**Understanding Systemd Units and Unit Files**](https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files)
+- 7) logrotate: is designed to ease administration of systems that generate large numbers of log files. It allows automatic rotation, compression, removal, and mailing of log files. Each log file may be handled daily, weekly, monthly, or when it grows too large. [**Linux man page**](https://linux.die.net/man/8/logrotate)
+- 8) scp: scp copies files between hosts on a network.  It uses ssh(1) for data transfer, and uses the same authentication and provides the same security as ssh(1). scp will ask for passwords or passphrases if they are needed for authentication.[**Linux scp command**](https://www.computerhope.com/unix/scp.htm)
+- 9) nano: a simple linux text editor which serves all the requirements in this guide, you can find a more in depth guide on how to use nano here [**Nano Text Editor Commands**](https://www.linode.com/docs/tools-reference/tools/use-nano-text-editor-commands/) 
 
 # Index and quick links:
 
@@ -220,7 +223,7 @@ ssh  graft@<remote-machine-ip>
 ```
 to Login with no password.
 
-Next step is disable root logins via ssh, obviously ensure you have created another user to ensure you dont lock yourself out. 
+Next step is disable root logins via ssh, obviously **ensure you have created another user to ensure you dont lock yourself out.** 
 - This step is general SSH best practice as every Linux/Unix distro uses root as the admin user and therefore is an easy target for brute force attacks. 
 - Another good idea is to change the port to a custom port for ssh and use the switch "-p <port-number>" with the ssh command.
 - Once again ensure you open the port on ufw if enabled to ensure you dont lock yourself out and you have a non-root user configured.
@@ -254,7 +257,7 @@ and inputting the password.
 nano /etc/ssh/sshd_config
 ```
 - Uncomment the Port=22 line and input your custom port instead of 22.
-	- Again restart SSH daemon to make it take effect, beware as this could kick you off and lock you out, ***ENSURE PORT IS OPEN ON UFW!***
+- Again restart SSH daemon to make it take effect, beware as this could kick you off and lock you out, ***ENSURE PORT IS OPEN ON UFW!***
 
 ## Downloading the latest binaries and unzipping them into our home folder.
 ### GraftNetwork
@@ -302,6 +305,7 @@ graft-gen-trusted-multisig
 ````
 - Ok now lets start setting up so we can our lives easier in running a supernode. Change 'GraftNetwork_1.8.1-ubuntu-18.04-x64' to align with what you downloaded and decompressed in prior steps.
 - Below we create a link to the binaries folder so that we can constantly use the same commands even after we upgrade and have a different folder directory.
+
 #### Hard linking GraftNetwork
 ````
 cd
